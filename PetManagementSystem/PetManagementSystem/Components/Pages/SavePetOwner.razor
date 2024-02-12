@@ -1,0 +1,80 @@
+﻿@page "/savePetOwner"
+@rendermode InteractiveServer
+@using PetManagemenSystem.WrapperService.Interfaces
+@using PetManagement.Shared.Models
+@using Syncfusion.Blazor.DropDowns
+
+
+<PageTitle>SavePetOwner</PageTitle>
+
+<h1>New Pet and Owner Register page</h1>
+
+<h4>
+    <div>
+        <SfDropDownList Placeholder="Select Owner" DataSource="@DropDownPersons" TItem="Person" TValue="string">
+            <DropDownListFieldSettings Value="PersonId" Text="PersonName" @bind="@SelectedPerson"></DropDownListFieldSettings>
+        </SfDropDownList>
+        <SfDropDownList Placeholder="Select Species" DataSource="@DropDownSpecies" TItem="Species" TValue="string">
+            <DropDownListFieldSettings Value="SpeciesId" Text="SpeciesName" @bind="@SelectedSpecies"></DropDownListFieldSettings>
+                </SfDropDownList>
+         
+
+        <Syncfusion.Blazor.Inputs.SfTextBox Placeholder="Enter Pet Name" @bind-Value="@Name"> </Syncfusion.Blazor.Inputs.SfTextBox>
+
+        
+    </div>
+</h4>
+
+<SfDialog Width="250px" ShowCloseIcon="true" IsModal="true"  @bind="@Message">
+            <DialogTemplates>
+                <Header> @header </Header>
+                <Content> @Message </Content>
+        </DialogTemplates>
+    </SfDialog>
+
+<button class="btn btn-primary" @onclick="SavePetOwnerDetails">Save</button>
+
+@code {
+    public List<Person> DropDownPersons { get; set; }
+    public List<Species> DropDownSpecies { get; set; }
+    public string Name { get; set; }
+    public Person SelectedPerson { get; set; }
+    public Species SelectedSpecies { get; set; }
+
+    [Inject]
+    public IPersonsGetter _personGetter { get; set; }
+    [Inject]
+    public ISpeciesGetter _speciesGetter { get; set; }
+    [Inject]
+    public IPetOwnerAdder _petOwnerAdder { get; set; }
+
+    public bool IsVisible { get; set; } = true;
+    public string Message { get; set; }
+    public string header { get; set; }
+    protected override async void OnInitialized()
+    {
+        DropDownPersons = (await _personGetter.GetAllPersons()).ToList();
+        DropDownSpecies = (await _speciesGetter.GetAllSpecies()).ToList();
+    }
+
+    public void SavePetOwnerDetails()
+    {
+        PetOwner petOwner = new PetOwner();
+        petOwner.Owner = SelectedPerson;
+        petOwner.PetType = SelectedSpecies;
+        petOwner.PetName = Name;
+        try
+        {
+            _petOwnerAdder.AddNewPetOwner(petOwner);
+            Message = "Added Successfully";
+            header = "Success";
+            IsVisible = true;
+        }
+        catch(Exception ex)
+        {
+            Message = ex.Message;
+            header = "Error";
+            IsVisible = true;
+        }
+   }
+}

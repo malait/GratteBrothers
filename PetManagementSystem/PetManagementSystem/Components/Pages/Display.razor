@@ -1,0 +1,63 @@
+﻿@page "/Display"
+@using PetManagemenSystem.WrapperService.Interfaces
+@using PetManagement.Shared.Models
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Spinner
+@using Syncfusion.Blazor.DropDowns
+
+<PageTitle>DisplayData</PageTitle>
+
+<style>
+    .e-spinner-pane .e-spinner-inner .e-spin-bootstrap5{
+        stroke: navy;
+    }
+</style>
+
+<SfSpinner @bind-Visible="SpinnerVisible" Label="Data Loading..." Size="50" Type="@SpinnerType.Bootstrap5">
+</SfSpinner>
+
+<SfGrid DataSource="@PetOwners" AllowPaging="true" AllowSorting="true" AllowFiltering="true" AllowGrouping="true">
+    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+    <GridColumns>
+        <GridColumn AllowGrouping="false" AllowFiltering="false" Field=@nameof(PetOwner.PetOwnerId) HeaderText="ID"></GridColumn>
+        <GridColumn Field="Species.SpeciesName" HeaderText="Species">
+            <FilterTemplate>
+                <SfDropDownList Placeholder="All" DataSource="@DropDownSpecies" TItem="Species" TValue="string">
+                    <DropDownListFieldSettings Value="SpeciesId" Text="SpeciesName"></DropDownListFieldSettings>
+                </SfDropDownList>
+            </FilterTemplate>
+        </GridColumn>
+        <GridColumn AllowGrouping="false" Field="Person.PersonName" HeaderText="Owner Name"></GridColumn>
+        <GridColumn AllowGrouping="false" Field=@nameof(PetOwner.PetName) HeaderText="Pet Name"></GridColumn>
+        
+    </GridColumns>
+</SfGrid>
+
+@code{
+    public List<PetOwner> PetOwners { get; set; }
+    public bool SpinnerVisible { get; set; }
+    public List<Person> DropDownPersons { get; set; }
+    public List<Species> DropDownSpecies { get; set; }
+
+    [Inject]
+    public IPersonsGetter _personGetter { get; set; }
+    [Inject]
+    public ISpeciesGetter _speciesGetter { get; set; }
+    [Inject]
+    public IPetOwnerGetter _petOwnerGetter { get; set; }
+
+    protected override async void OnInitialized()
+    {
+        SpinnerVisible = true;
+        
+        DropDownPersons = (await _personGetter.GetAllPersons()).ToList();
+        DropDownSpecies = (await _speciesGetter.GetAllSpecies()).ToList();
+        PetOwners = (await _petOwnerGetter.GetPetOwnerList()).ToList();
+        
+        SpinnerVisible = false;
+    }
+    private List<PetOwner> LoadPetOwners()
+    {
+        return new List<PetOwner>();
+    }
+}
